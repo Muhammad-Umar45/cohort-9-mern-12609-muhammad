@@ -1,33 +1,42 @@
 const ApiError = require("../shared/errors/ApiError");
 const { verifyToken } = require("../shared/utils/jwt");
 const User = require("../modules/users/model");
-const asyncHandler=require("../utils/asyncHandler")
+const asyncHandler = require("../shared/utils/asyncHandler");
 
 const authenticate = asyncHandler(async (req, res, next) => {
-    // Get Authorization header
-    const authHeader = req.headers.authorization;
+  // Get Authorization header
+  const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      throw new ApiError(401, "Unauthorized");
-    }
+  if (!authHeader) {
+    throw new ApiError(401, "Unauthorized");
+  }
 
-    // Extract token
-    const token = authHeader.split(" ")[1];
+  const [scheme, token] = authHeader.split(" ");
 
-    // Verify JWT
-    const decoded = verifyToken(token);
+  if (scheme !== "Bearer" || !token) {
+    throw new ApiError(401, "Unauthorized");
+  }
 
-    // Find user
-    const user = await User.findById(decoded.userId).select("-password");
+  // Verify JWT
+  let decoded;
 
-    if (!user) {
-      throw new ApiError(401, "Unauthorized");
-    }
+try {
+  decoded = verifyToken(token);
+} catch {
+  throw new ApiError(401, "Unauthorized");
+}
 
-    // Attach user to request
-    req.user = user;
+  // Find user
+  const user = await User.findById(decoded.userId).select("-password");
 
-    next();
-  });
+  if (!user) {
+    throw new ApiError(401, "Unauthorized");
+  }
+
+  // Attach user to request
+  req.user = user;
+
+  next();
+});
 
 module.exports = authenticate;

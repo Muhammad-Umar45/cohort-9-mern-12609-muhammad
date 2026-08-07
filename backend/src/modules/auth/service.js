@@ -7,36 +7,45 @@ const { generateToken } = require("../../shared/utils/jwt");
 const { BCRYPT_SALT_ROUNDS } = require("../../config/env");
 
 const checkExistingUser = async (email) => {
-    const user = await User.findOne({ email });
+  const user = await User.findOne({ email });
 
-    if (user) {
-        throw new ApiError(409, "User already exists");
-    }
+  if (user) {
+    throw new ApiError(409, "User already exists");
+  }
 };
 
 const hashPassword = async (password) => {
-    return bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+  return bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
 };
 
 const createUser = async (userData) => {
-    return User.create(userData);
+  let user;
+  try {
+    user = await User.create(userData);
+  } catch (error) {
+    if (error.code === 11000) {
+      throw new ApiError(409, "User already exists");
+    }
+    throw error;
+  }
+  return user;
 };
 
 const register = async (userData) => {
-    await checkExistingUser(userData.email);
+  await checkExistingUser(userData.email);
 
-    const hashedPassword = await hashPassword(userData.password);
+  const hashedPassword = await hashPassword(userData.password);
 
-    const user = await createUser({
-        ...userData,
-        password: hashedPassword,
-    });
+  const user = await createUser({
+    ...userData,
+    password: hashedPassword,
+  });
 
-    const userResponse = user.toObject();
+  const userResponse = user.toObject();
 
-    delete userResponse.password;
+  delete userResponse.password;
 
-    return userResponse;
+  return userResponse;
 };
 const login = async (loginData) => {
   const { email, password } = loginData;
@@ -49,10 +58,7 @@ const login = async (loginData) => {
   }
 
   // Compare password
-  const isPasswordMatched = await bcrypt.compare(
-    password,
-    user.password
-  );
+  const isPasswordMatched = await bcrypt.compare(password, user.password);
 
   if (!isPasswordMatched) {
     throw new ApiError(401, "Invalid email or password");
