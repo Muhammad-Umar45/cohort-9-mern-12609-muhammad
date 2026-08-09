@@ -5,24 +5,36 @@ const logger = require("./src/config/logger");
 
 const startServer = async () => {
   try {
+    // Connect to database
     await connectDB();
 
-    app.listen(PORT, () => {
+    // Start HTTP server
+    const server = app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
+    });
+
+    // Handle server startup/runtime errors
+    server.on("error", (error) => {
+      logger.error(
+        {
+          service: "server",
+          err: error,
+        },
+        "Failed to start server"
+      );
+
+      process.exit(1);
     });
   } catch (error) {
     logger.error(
       {
-        service: "server",
+        service: "database",
+        err: error,
       },
-      "Failed to start server",
+      "Failed to connect to database"
     );
-    logger.error(
-      {
-        service: "server",
-      },
-      error.message,
-    );
+
+    process.exit(1);
   }
 };
 
