@@ -1,5 +1,6 @@
 const Note = require("./model");
 const ApiError = require("../../shared/errors/ApiError");
+const mongoose = require("mongoose");
 
 const createNote = async (noteData, userId) => {
   const { title, content } = noteData;

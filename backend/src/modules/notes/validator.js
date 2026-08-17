@@ -3,7 +3,7 @@ const Joi = require("joi");
 const createNoteSchema = Joi.object({
   title: Joi.string()
     .trim()
-    .max(200)
+    .max(100)
     .required(),
 
   content: Joi.string()
@@ -13,7 +13,7 @@ const createNoteSchema = Joi.object({
 const updateNoteSchema = Joi.object({
   title: Joi.string()
     .trim()
-    .max(200),
+    .max(100),
 
   content: Joi.string(),
 }).min(1);

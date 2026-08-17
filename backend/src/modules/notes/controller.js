@@ -35,6 +35,7 @@ const getNoteById = asyncHandler(async (req, res) => {
     data: note,
   });
 });
+
 const updateNote = asyncHandler(async (req, res) => {
   const note = await noteService.updateNote(
     req.params.id,
@@ -62,7 +63,7 @@ const deleteNote = asyncHandler(async (req, res) => {
 });
 
 const searchNotes = asyncHandler(async (req, res) => {
-  const notes = await noteService.searchNotes(req.user._id, req.query.q);
+  const notes = await noteService.searchNotes(req.user._id, req.validatedQuery.q);
 
   res.status(200).json({
     success: true,
