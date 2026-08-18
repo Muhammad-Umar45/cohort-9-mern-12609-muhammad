@@ -13,8 +13,27 @@ const createNote = async (noteData, userId) => {
 
   return note;
 };
-const getNotes = async (userId) => {
-  return Note.find({ user: userId }).sort({ createdAt: -1 });
+const getNotes = async (userId, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+
+  const [notes, total] = await Promise.all([
+    Note.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+
+    Note.countDocuments({ user: userId }),
+  ]);
+
+  return {
+    notes,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 
 const getNoteById = async (noteId, userId) => {
@@ -74,16 +93,35 @@ const deleteNote = async (noteId, userId) => {
   return note;
 };
 
-const searchNotes = async (userId, searchQuery) => {
-  const notes = await Note.find({
+const searchNotes = async (userId, searchQuery, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+
+  const filter = {
     user: userId,
     $or: [
       { title: { $regex: searchQuery, $options: "i" } },
       { content: { $regex: searchQuery, $options: "i" } },
     ],
-  }).sort({ createdAt: -1 });
+  };
 
-  return notes;
+  const [notes, total] = await Promise.all([
+    Note.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+
+    Note.countDocuments(filter),
+  ]);
+
+  return {
+    notes,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 };
 
 module.exports = {

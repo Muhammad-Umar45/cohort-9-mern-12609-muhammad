@@ -14,12 +14,19 @@ const createNote = asyncHandler(async (req, res) => {
   });
 });
 const getNotes = asyncHandler(async (req, res) => {
-  const notes = await noteService.getNotes(req.user._id);
+  const { page, limit } = req.validatedQuery;
+
+  const result = await noteService.getNotes(
+    req.user._id,
+    page,
+    limit
+  );
 
   res.status(200).json({
     success: true,
     message: "Notes retrieved successfully",
-    data: notes,
+    data: result.notes,
+    pagination: result.pagination,
   });
 });
 
@@ -63,12 +70,20 @@ const deleteNote = asyncHandler(async (req, res) => {
 });
 
 const searchNotes = asyncHandler(async (req, res) => {
-  const notes = await noteService.searchNotes(req.user._id, req.validatedQuery.q);
+  const { q, page, limit } = req.validatedQuery;
+
+  const result = await noteService.searchNotes(
+    req.user._id,
+    q,
+    page,
+    limit
+  );
 
   res.status(200).json({
     success: true,
     message: "Notes searched successfully",
-    data: notes,
+    data: result.notes,
+    pagination: result.pagination,
   });
 });
 
